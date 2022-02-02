@@ -77,24 +77,28 @@ activate miso
     deactivate rp
     miso -> _processingPorts : add(rp)
     miso -> isoData ** : new
-    miso -> Isolate : spawn(_islatePoolProcessor, isoData)
+    miso -> Isolate : spawn(_isolatePoolProcessor, isoData)
 activate Isolate
         Isolate -> isolate ** : new
+        group#lightblue #42F5AD Isolate Worker
         Isolate -> miso : Future<isolate>
         activate isolate
 deactivate miso
     isolate -> miso : _isolatePoolProcessor()
-    note left: miso is a static method.
+    note left: _isolatePoolProcessor is a static method.
     activate miso
 deactivate Isolate
 
 == _isolatePoolProcessor ==
             miso -> isoData : job
-            activate jsoData
+            activate isoData
                 isoData -> miso : Job<I,O>
-            deactivate jsoData
+            deactivate isoData
             miso -> Job : process()
-            ...
+            activate Job
+                ...
+                Job -> miso : output
+            deactivate Job
             miso -> isoData : sp
             activate isoData
                 isoData -> miso : SendPort
@@ -102,6 +106,7 @@ deactivate Isolate
             miso -> Isolate : exit(sp, output)
         deactivate isolate
     deactivate miso
+end group
 == _processJobCompletion ==
     note left: Threads complete at an indeterminate time.
     activate Isolate
