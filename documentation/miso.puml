@@ -1,0 +1,142 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+'autonumber
+actor Consumer
+participant "pool : IsolatePool<I,O>" as miso
+collections "_processingPorts : Set" as _processingPorts
+queue "_jobQueue : List" as _jobQueue
+participant "_jobOutputController : StreamController" as _jobOutputController
+participant "rp : ReceivePort" as rp
+participant "sp : SendPort" as sp
+participant Isolate
+participant "isoData : _IsolateData" as isoData
+participant "iso : Isolate" as isolate
+
+Consumer -> miso **: new(poolSize)
+miso -> _processingPorts ** : new
+miso -> _jobQueue ** : new
+miso -> _jobOutputController ** : new
+
+
+== outputStream ==
+Consumer -> miso : outputStream
+note left
+    Consumer listens to output stream to
+    capture the outputs from jobs as they
+    are completed by the isolate workers
+    in the isolate pool.
+end note
+activate miso
+    miso -> _jobOutputController : stream
+    activate _jobOutputController
+        _jobOutputController -> miso : Stream<O>
+    deactivate _jobOutputController
+    miso -> Consumer : Stream<O>
+deactivate miso
+
+== addJobs ==
+Consumer -> miso : addJobs(jobs)
+activate miso
+    loop#Gold #LightYellow job in jobs
+        miso -> miso : addJob(job)
+        activate miso
+        deactivate miso
+    end
+deactivate miso
+== addJob ==
+Consumer -> miso : addJob(job)
+activate miso
+    alt#Gold #LightGreen JobQueue.notEmpty && _processingPorts < poolSize
+        miso -> miso : _processJob()
+        activate miso
+            miso -> rp ** : new
+            miso -> rp : listen(_processJobCompletion(rp, message))
+            activate rp
+            deactivate rp
+            miso -> _processingPorts : add(rp)
+
+        deactivate miso
+    else #LightBlue Failure
+        miso -> miso : _enqueueJob()
+        activate miso
+            miso -> _jobQueue : add(job)
+        deactivate miso
+    end
+deactivate miso
+
+== _processJob ==
+miso -> miso : _processJob()
+activate miso
+    miso -> rp ** : new
+    activate rp
+        rp -> sp ** : new
+    deactivate rp
+    miso -> rp : listen(_processJobCompletion(rp, message))
+    activate rp
+    deactivate rp
+    miso -> _processingPorts : add(rp)
+    miso -> isoData ** : new
+    miso -> Isolate : spawn(_islatePoolProcessor, isoData)
+activate Isolate
+        Isolate -> isolate ** : new
+        Isolate -> miso : Future<isolate>
+        activate isolate
+deactivate miso
+    isolate -> miso : _isolatePoolProcessor
+    note left: miso is a static method.
+    activate miso
+deactivate Isolate
+
+== _processJobCompletion ==
+...
+            isolate -> Isolate : exit(sp, output)
+        deactivate isolate
+    note left: Threads complete at an indeterminate time.
+    activate Isolate
+        Isolate -> sp : send(message)
+        activate sp
+            sp -> rp : add(message)
+            activate rp
+                rp -> miso : _processJobCompletion(rp, message)
+            deactivate rp
+        deactivate sp
+    deactivate Isolate
+    activate miso
+        alt#Gold #LightGreen message is O
+            miso -> _jobOutputController : add(message)
+            activate _jobOutputController
+            deactivate _jobOutputController
+
+            miso -> rp : close
+            activate rp
+            deactivate rp
+
+            miso -> _processingPorts : remove(rp)
+            activate _processingPorts
+            deactivate _processingPorts
+
+            miso -> miso : _processQueue()
+            activate miso
+            deactivate miso
+        else #LightBlue no-op
+        end
+    deactivate miso
+deactivate miso
+
+== _processQueue ==
+miso -> miso : _processQueue()
+activate miso
+    alt#Gold #LightGreen _jobQueue.isNotEmpty && _processingPorts.length < poolSize
+        miso -> _jobQueue : removeAt(0)
+        activate _jobQueue
+            _jobQueue -> miso : Job<I,O>
+        deactivate _jobQueue
+        miso -> miso : _processJob(Job<I,O>)
+        activate miso
+        deactivate miso
+    else #LightBlue no-op
+    end
+deactivate miso
+
+@enduml
