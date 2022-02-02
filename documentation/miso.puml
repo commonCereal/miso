@@ -83,7 +83,7 @@ activate Isolate
         Isolate -> miso : Future<isolate>
         activate isolate
 deactivate miso
-    isolate -> miso : _isolatePoolProcessor
+    isolate -> miso : _isolatePoolProcessor()
     note left: miso is a static method.
     activate miso
 deactivate Isolate
@@ -101,7 +101,7 @@ deactivate Isolate
             deactivate isoData
             miso -> Isolate : exit(sp, output)
         deactivate isolate
-
+    deactivate miso
 == _processJobCompletion ==
     note left: Threads complete at an indeterminate time.
     activate Isolate
@@ -132,7 +132,6 @@ deactivate Isolate
             deactivate miso
         else #LightBlue no-op
         end
-    deactivate miso
 deactivate miso
 
 == _processQueue ==
