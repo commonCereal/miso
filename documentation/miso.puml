@@ -88,10 +88,21 @@ deactivate miso
     activate miso
 deactivate Isolate
 
-== _processJobCompletion ==
-...
-            isolate -> Isolate : exit(sp, output)
+== _isolatePoolProcessor ==
+            miso -> isoData : job
+            activate jsoData
+                isoData -> miso : Job<I,O>
+            deactivate jsoData
+            miso -> Job : process()
+            ...
+            miso -> isoData : sp
+            activate isoData
+                isoData -> miso : SendPort
+            deactivate isoData
+            miso -> Isolate : exit(sp, output)
         deactivate isolate
+
+== _processJobCompletion ==
     note left: Threads complete at an indeterminate time.
     activate Isolate
         Isolate -> sp : send(message)
