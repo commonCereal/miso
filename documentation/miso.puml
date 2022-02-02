@@ -1,6 +1,6 @@
 @startuml
 'https://plantuml.com/sequence-diagram
-
+group#lightblue Main Isolate
 'autonumber
 actor Consumer
 participant "pool : IsolatePool<I,O>" as miso
@@ -80,7 +80,7 @@ activate miso
     miso -> Isolate : spawn(_isolatePoolProcessor, isoData)
 activate Isolate
         Isolate -> isolate ** : new
-        group#lightblue #42F5AD Isolate Worker
+group#lightblue #42F5AD Worker Isolate
         Isolate -> miso : Future<isolate>
         activate isolate
 deactivate miso
@@ -153,5 +153,6 @@ activate miso
     else #LightBlue no-op
     end
 deactivate miso
+end group
 
 @enduml
