@@ -1,6 +1,12 @@
 A sample command-line application with an entrypoint in `bin/`, library code
 in `lib/`, and example unit test in `test/`.
 # miso
+
+## Concurrent Programming with Dart
+- Contains Isolate examples for Dart 2.15
+- *Will contain data structures for managing miso code.
+- defines a totally cool term for Dart concurrent programming.
+
 ## Naming motivation
 I'm a sucker for making clever abbreviations, so here's my motivation:
 - Multi-threading is the concept.
@@ -9,3 +15,6 @@ I'm a sucker for making clever abbreviations, so here's my motivation:
 - Multi-ISOlating => MISO 🍜
 - bonus: I happen to love miso ramen.
 - QED I'm dumb
+
+
+* came about from a need in a personal project, though don't entirely need it atm so not doing too much in here until I need to. Just playing around for now.
