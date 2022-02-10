@@ -1,22 +1,21 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:isolate';
 
 import 'package:miso/job.dart';
 
 class IsolatePool<I extends Object,O extends Object> {
-  IsolatePool(this.poolSize) : _processingPorts = {}, _jobQueue = [];
+  IsolatePool(this.poolSize) : _processingPorts = [], _jobQueue = Queue();
   final int poolSize;
 
-  final Set<ReceivePort> _processingPorts;
-  final List<Job<I,O>> _jobQueue;
+  final List<ReceivePort> _processingPorts;
+  final Queue<Job<I,O>> _jobQueue;
 
   final StreamController<O> _jobOutputController = StreamController.broadcast();
 
   Stream<O> get outputStream => _jobOutputController.stream;
 
-  dispose() {
-    _jobOutputController.close();
-  }
+  dispose() => _jobOutputController.close();
 
   addJobs(Iterable<Job<I,O>> jobs) => jobs.forEach(addJob);
 
@@ -37,7 +36,7 @@ class IsolatePool<I extends Object,O extends Object> {
 
   void _processQueue() {
     if (_jobQueue.isNotEmpty && _hasAvailableIsolates) {
-      _processJob(_jobQueue.removeAt(0));
+      _processJob(_jobQueue.removeFirst());
     }
   }
 
