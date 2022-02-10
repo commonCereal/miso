@@ -8,3 +8,4 @@ I'm a sucker for making clever abbreviations, so here's my motivation:
 - So technically with respect to Dart, it'd be called multi-isolating
 - Multi-ISOlating => MISO 🍜
 - bonus: I happen to love miso ramen.
+- QED I'm dumb
