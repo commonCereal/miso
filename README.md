@@ -12,7 +12,7 @@ I'm a sucker for making clever abbreviations, so here's my motivation:
 - So technically with respect to Dart, it'd be called multi-isolating
 - Multi-ISOlating => MISO 🍜
 - bonus: I happen to love miso ramen.
-- QED I have the dumb
+- QED -> I have the dumb
 
 
 \* came about from a need in a personal project, though don't entirely need it atm so not doing too much in here until I need to. Just playing around for now.
